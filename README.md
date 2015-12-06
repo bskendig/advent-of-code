@@ -1,2 +1,4 @@
 # advent-of-code
-Advent of Code
+
+My solutions in Swift for the Advent of Code (http://adventofcode.com/).
+
