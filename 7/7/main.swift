@@ -8,6 +8,8 @@
 
 import Foundation
 
+var wires: [String:Wire] = [:]
+
 func getInput() -> String {
     let bundle = NSBundle.mainBundle()
     let path = bundle.pathForResource("input", ofType: "txt")
@@ -24,14 +26,15 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
 
 func getWires(wireInstructions: [String]) -> [String:Wire] {
     let logic: [Wire.Operation: NSRegularExpression] = [
-        Wire.Operation.Signal: try! NSRegularExpression(pattern: "^(\\d+) -> (.+)$", options: []),
-        Wire.Operation.And:    try! NSRegularExpression(pattern: "^(.+) AND (.+) -> (.+)$", options: []),
-        Wire.Operation.Or:     try! NSRegularExpression(pattern: "^(.+) OR (.+) -> (.+)$", options: []),
-        Wire.Operation.Not:    try! NSRegularExpression(pattern: "^NOT (.+) -> (.+)$", options: []),
-        Wire.Operation.LShift: try! NSRegularExpression(pattern: "^(.+) LSHIFT (\\d+) -> (.+)$", options: []),
-        Wire.Operation.RShift: try! NSRegularExpression(pattern: "^(.+) RSHIFT (\\d+) -> (.+)$", options: [])
+        Wire.Operation.Signal:   try! NSRegularExpression(pattern: "^(\\d+) -> (.+)$", options: []),
+        Wire.Operation.Identity: try! NSRegularExpression(pattern: "^([^ ]+) -> (.+)$", options: []),
+        Wire.Operation.Not:      try! NSRegularExpression(pattern: "^NOT (.+) -> (.+)$", options: []),
+        Wire.Operation.And:      try! NSRegularExpression(pattern: "^(.+) AND (.+) -> (.+)$", options: []),
+        Wire.Operation.Or:       try! NSRegularExpression(pattern: "^(.+) OR (.+) -> (.+)$", options: []),
+        Wire.Operation.Xor:      try! NSRegularExpression(pattern: "^(.+) XOR (.+) -> (.+)$", options: []),
+        Wire.Operation.LShift:   try! NSRegularExpression(pattern: "^(.+) LSHIFT (.+) -> (.+)$", options: []),
+        Wire.Operation.RShift:   try! NSRegularExpression(pattern: "^(.+) RSHIFT (.+) -> (.+)$", options: [])
     ]
-    var wires: [String:Wire] = [:]
 
     for wireInstruction in wireInstructions {
         var matches: [NSTextCheckingResult]
@@ -45,7 +48,6 @@ func getWires(wireInstructions: [String]) -> [String:Wire] {
                 let wire: Wire
                 wire = (operation == Wire.Operation.Signal) ? Wire(name: wireName, value: UInt16(a[0])!)
                     : Wire(name: wireName, operation: operation, inputs: a)
-                print("Adding " + wireName + ".")
                 wires[wireName] = wire
             }
         }
@@ -53,30 +55,32 @@ func getWires(wireInstructions: [String]) -> [String:Wire] {
     return wires
 }
 
-func eval(wireName: String, wires: [String:Wire]) -> UInt16 {
-    print(wireName)
+func eval(wireName: String) -> UInt16 {
 
     let num = UInt16(wireName)
     if num != nil { return num! }
 
     let wire = wires[wireName]!
+    if wire.value != nil { return wire.value! }
+
     if wire.operation == Wire.Operation.Signal {
         return wire.value!
     } else {
         switch wire.operation {
+        case Wire.Operation.Identity:
+            wire.value = eval(wire.inputs[0])
         case Wire.Operation.Not:
-            let foo: UInt16? = eval(wire.inputs[0], wires: wires)
-            wire.value = UInt16(bitPattern: ~Int16(foo!))
+            wire.value = ~eval(wire.inputs[0])
         case Wire.Operation.And:
-            wire.value = eval(wire.inputs[0], wires: wires) & eval(wire.inputs[1], wires: wires)
+            wire.value = eval(wire.inputs[0]) & eval(wire.inputs[1])
         case Wire.Operation.Or:
-            wire.value = eval(wire.inputs[0], wires: wires) | eval(wire.inputs[1], wires: wires)
+            wire.value = eval(wire.inputs[0]) | eval(wire.inputs[1])
         case Wire.Operation.Xor:
-            wire.value = eval(wire.inputs[0], wires: wires) ^ eval(wire.inputs[1], wires: wires)
+            wire.value = eval(wire.inputs[0]) ^ eval(wire.inputs[1])
         case Wire.Operation.LShift:
-            wire.value = UInt16(Int16(eval(wire.inputs[0], wires: wires)) << Int16(wire.inputs[1])!)
+            wire.value = eval(wire.inputs[0]) << UInt16(wire.inputs[1])!
         case Wire.Operation.RShift:
-            wire.value = UInt16(Int32(eval(wire.inputs[0], wires: wires)) >> Int32(wire.inputs[1])!)
+            wire.value = eval(wire.inputs[0]) >> UInt16(wire.inputs[1])!
         default:
             break
         }
@@ -85,11 +89,26 @@ func eval(wireName: String, wires: [String:Wire]) -> UInt16 {
     return wire.value!
 }
 
+func clearWires() {
+    for wire in wires.values {
+        if wire.operation != Wire.Operation.Signal {
+            wire.value = nil
+        }
+    }
+}
+
 func main() {
     let wireInstructions = getInput().componentsSeparatedByString("\n")
-    let wires = getWires(wireInstructions)
+    wires = getWires(wireInstructions)
 
-    print(eval("a", wires: wires))
+    var a = eval("a")
+    print("Wire a has signal \(a)")
+
+    clearWires()
+
+    wires["b"] = Wire(name: "b", value: a)
+    a = eval("a")
+    print ("Wire a now has signal \(a)")
 }
 
 main()
