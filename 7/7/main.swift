@@ -63,27 +63,23 @@ func eval(wireName: String) -> UInt16 {
     let wire = wires[wireName]!
     if wire.value != nil { return wire.value! }
 
-    if wire.operation == Wire.Operation.Signal {
-        return wire.value!
-    } else {
-        switch wire.operation {
-        case Wire.Operation.Identity:
-            wire.value = eval(wire.inputs[0])
-        case Wire.Operation.Not:
-            wire.value = ~eval(wire.inputs[0])
-        case Wire.Operation.And:
-            wire.value = eval(wire.inputs[0]) & eval(wire.inputs[1])
-        case Wire.Operation.Or:
-            wire.value = eval(wire.inputs[0]) | eval(wire.inputs[1])
-        case Wire.Operation.Xor:
-            wire.value = eval(wire.inputs[0]) ^ eval(wire.inputs[1])
-        case Wire.Operation.LShift:
-            wire.value = eval(wire.inputs[0]) << UInt16(wire.inputs[1])!
-        case Wire.Operation.RShift:
-            wire.value = eval(wire.inputs[0]) >> UInt16(wire.inputs[1])!
-        default:
-            break
-        }
+    switch wire.operation {
+    case Wire.Operation.Signal:
+        break  // do nothing
+    case Wire.Operation.Identity:
+        wire.value = eval(wire.inputs[0])
+    case Wire.Operation.Not:
+        wire.value = ~eval(wire.inputs[0])
+    case Wire.Operation.And:
+        wire.value = eval(wire.inputs[0]) & eval(wire.inputs[1])
+    case Wire.Operation.Or:
+        wire.value = eval(wire.inputs[0]) | eval(wire.inputs[1])
+    case Wire.Operation.Xor:
+        wire.value = eval(wire.inputs[0]) ^ eval(wire.inputs[1])
+    case Wire.Operation.LShift:
+        wire.value = eval(wire.inputs[0]) << UInt16(wire.inputs[1])!
+    case Wire.Operation.RShift:
+        wire.value = eval(wire.inputs[0]) >> UInt16(wire.inputs[1])!
     }
 
     return wire.value!
