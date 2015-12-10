@@ -22,48 +22,46 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
     return a
 }
 
-func distanceBetween(loc1: String, loc2: String, distance: [String:[String:Int]]) -> Int {
-    return distance[loc1]![loc2] ?? distance[loc2]![loc1]!
+func distanceBetween(loc1: String, loc2: String, allDistances: [String:[String:Int]]) -> Int {
+    if (allDistances[loc1] != nil && allDistances[loc1]![loc2] != nil) {
+        return allDistances[loc1]![loc2]!
+    } else {
+        return allDistances[loc2]![loc1]!
+    }
 }
+
+// for each string in the array:
+//     pull it off a copy of the array
+//     add it to the beginning of every permutation of the rest of the array
 
 func allPermutations(locations: [String]) -> [[String]] {
     if locations.count == 1 { return [locations] }
-    var a: [String] = []
+    var allResults: [[String]] = []
     for (i, loc) in locations.enumerate() {
         var locs = locations
         locs.removeAtIndex(i)
-        return locs.map({$0.insert(loc, atIndex: 0)})
+        let permutations = allPermutations(locs)
+        let p = permutations.map({
+            (a: [String]) -> [String] in
+            var b = a
+            b.insert(loc, atIndex: 0)
+            return b
+        })
+        allResults += p
     }
-
-    return []
+    return allResults
 }
 
-
-func combinations<T>(var arr: Array<T>, k: Int) -> Array<Array<T>> {
-    var i: Int
-    var subI : Int
-    var ret: Array<Array<T>> = []
-    var sub: Array<Array<T>> = []
-    var next: Array<T> = []
-    for var i = 0; i < arr.count; ++i {
-        if(k == 1){
-            ret.append([arr[i]])
-        }else {
-            sub = combinations(sliceArray(arr, i + 1, arr.count – 1), k – 1)
-            for var subI = 0; subI < sub.count; ++subI {
-                next = sub[subI]
-                next.insert(arr[i], atIndex: 0)
-                ret.append(next)
-            }
-        }
+func getTotalDistance(locations: [String], allDistances: [String:[String:Int]]) -> Int {
+    var d = 0
+    for i in 0 ..< locations.count - 1 {
+        d += distanceBetween(locations[i], loc2: locations[i+1], allDistances: allDistances)
     }
-    return ret
+    return d
 }
-
-
 
 func main() {
-    var distance: [String:[String:Int]] = [:]
+    var allDistances: [String:[String:Int]] = [:]
     var locations: [String:Bool] = [:]
     let distanceLines = getInput().componentsSeparatedByString("\n")
     for distanceLine in distanceLines {
@@ -72,14 +70,38 @@ func main() {
         if !matches.isEmpty {
             let a = getMatches(distanceLine, matches: matches)
             let loc1 = a[0], loc2 = a[1], d = Int(a[2])!
-            var dict = distance[loc1] ?? [:]
+            var dict = allDistances[loc1] ?? [:]
             dict[loc2] = d
-            distance[loc1] = dict
+            allDistances[loc1] = dict
             locations[loc1] = true
             locations[loc2] = true
         }
     }
 
+    let allLocationPermutations = allPermutations(Array(locations.keys))
+    var min = 99999
+    var foundRoute: [String] = []
+    for p in allLocationPermutations {
+        let d = getTotalDistance(p, allDistances: allDistances)
+        if d < min {
+            min = d
+            foundRoute = p
+        }
+    }
+    var routeString = foundRoute.joinWithSeparator(" -> ")
+    print("Shortest route is \(min): \(routeString)")
+
+    var max = 0
+    foundRoute = []
+    for p in allLocationPermutations {
+        let d = getTotalDistance(p, allDistances: allDistances)
+        if d > max {
+            max = d
+            foundRoute = p
+        }
+    }
+    routeString = foundRoute.joinWithSeparator(" -> ")
+    print("Shortest route is \(max): \(routeString)")
 }
 
 main()
