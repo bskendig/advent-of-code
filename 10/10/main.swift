@@ -10,13 +10,14 @@ import Foundation
 
 func iterate(inout s: String) -> String {
     var new: [String] = []
-    var prev: Character = " "
-    var count = 0
-    for c in s.characters {
+    var prev: Character = s[s.startIndex]
+    var count = 1
+    let index = s.startIndex.advancedBy(1)
+    for c in s.substringFromIndex(index).characters {
         if c == prev {
             count++
         } else {
-            if count != 0 { new.append("\(count)\(prev)") }  // starting condition
+            new.append(String(count) + String(prev))
             prev = c
             count = 1
         }
