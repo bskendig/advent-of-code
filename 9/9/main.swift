@@ -34,15 +34,15 @@ func distanceBetween(loc1: String, loc2: String, allDistances: [String:[String:I
 //     pull it off a copy of the array
 //     add it to the beginning of every permutation of the rest of the array
 
-func allPermutations(locations: [String]) -> [[String]] {
+func allPermutations<T>(locations: [T]) -> [[T]] {
     if locations.count == 1 { return [locations] }
-    var allResults: [[String]] = []
+    var allResults: [[T]] = []
     for (i, loc) in locations.enumerate() {
         var locs = locations
         locs.removeAtIndex(i)
         let permutations = allPermutations(locs)
         let p = permutations.map({
-            (a: [String]) -> [String] in
+            (a: [T]) -> [T] in
             var b = a
             b.insert(loc, atIndex: 0)
             return b
@@ -101,7 +101,7 @@ func main() {
         }
     }
     routeString = foundRoute.joinWithSeparator(" -> ")
-    print("Shortest route is \(max): \(routeString)")
+    print("Longest route is \(max): \(routeString)")
 }
 
 main()
