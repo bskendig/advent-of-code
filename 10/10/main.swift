@@ -40,21 +40,10 @@ func main() {
     var a: [Int8] = [1, 1, 1, 3, 2, 2, 2, 1, 1, 3]
     var len = a.count
     let start = NSDate().timeIntervalSince1970
-    for _ in 1...40 {
+    for i in 1...100 {
         (a, len) = iterate(&a, oldLength: len)
+        print("\(i): \(NSDate().timeIntervalSince1970 - start) seconds")
     }
-    print (NSDate().timeIntervalSince1970 - start)
-    print("After 40 iterations, we have \(len) characters")
-    for _ in 41...50 {
-        (a, len) = iterate(&a, oldLength: len)
-    }
-    print (NSDate().timeIntervalSince1970 - start)
-    print("After 50 iterations, we have \(len) characters")
-
-//    for i in 1...100 {
-//        (a, len) = iterate(&a, oldLength: len)
-//        print(i)
-//    }
 }
 
 main()
