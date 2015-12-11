@@ -8,47 +8,48 @@
 
 import Foundation
 
-func iterate(inout s: String) -> String {
+func iterate(inout a: [Int8]) -> [Int8] {
 
-    // allocate an array to write the new string into, rather than continuously appending to a string
-    let newLength = Int(Float(s.characters.count) * 1.5)
-    var newString = [UInt8](count: newLength, repeatedValue: 0)
+    // allocate an array to write the new value into, rather than continuously appending
+    let newLength = Int(Float(a.count) * 2)
+    var newArray = [Int8](count: newLength, repeatedValue: 0)
     var bufferOffset = 0
 
-    var prevChar: Character = s[s.startIndex]
-    var charCount = 1
+    var prevInt: Int8 = a[0]
+    var intCount: Int8 = 1
 
-    for c in s.substringFromIndex(s.startIndex.advancedBy(1)).characters {
-        if c == prevChar {
-            charCount++
+    for i in a[1 ..< a.count] {
+        if i == prevInt {
+            intCount++
         } else {
-            let cs = String(charCount)
-            newString[bufferOffset++] = [UInt8](cs.utf8)[0]                // count
-            newString[bufferOffset++] = [UInt8](String(prevChar).utf8)[0]  // previous char
-            prevChar = c
-            charCount = 1
+            newArray[bufferOffset++] = intCount
+            newArray[bufferOffset++] = prevInt
+            prevInt = i
+            intCount = 1
         }
     }
-    let cs = String(charCount)
-    newString[bufferOffset++] = [UInt8](cs.utf8)[0]                // count
-    newString[bufferOffset++] = [UInt8](String(prevChar).utf8)[0]  // previous char
-    return NSString(bytes: newString, length: bufferOffset, encoding: NSUTF8StringEncoding) as! String
+    newArray[bufferOffset++] = intCount
+    newArray[bufferOffset++] = prevInt
+    newArray.removeRange(bufferOffset ..< newLength)
+    return newArray
 }
 
 func main() {
-    var input = "1113222113"
-
+//    let input = "1113222113"
+//    var a: [Int8] = input.characters.map({Int8($0)})
+    var a: [Int8] = [1, 1, 1, 3, 2, 2, 2, 1, 1, 3]
+    
 //    for _ in 1...40 {
-//        input = iterate(&input)
+//        a = iterate(&a)
 //    }
-//    print("After 40 iterations, we have \(input.characters.count) characters")
+//    print("After 40 iterations, we have \(a.count) characters")
 //    for _ in 41...50 {
-//        input = iterate(&input)
+//        a = iterate(&a)
 //    }
-//    print("After 50 iterations, we have \(input.characters.count) characters")
+//    print("After 50 iterations, we have \(a.count) characters")
 
     for i in 1...100 {
-        input = iterate(&input)
+        a = iterate(&a)
         print(i)
     }
 }
