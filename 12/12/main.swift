@@ -14,29 +14,24 @@ func getData() -> NSData {
     return NSData(contentsOfFile: path!)!
 }
 
-func readNumbersFrom(x: NSObject, ignoreRed: Bool = false) -> Int {
+func addNumbersFrom(x: NSObject, ignoreRed: Bool = false) -> Int {
     var i = 0
-    let className = x.className
-    if className.rangeOfString("Array") != nil {
-        for y in (x as! Array<NSObject>) {
-            i += readNumbersFrom(y, ignoreRed: ignoreRed)
+    if let a = x as? [NSObject] {
+        i += a.map({addNumbersFrom($0, ignoreRed: ignoreRed)}).reduce(0, combine: +)
+    } else if let d = x as? [String:NSObject] {
+        if !ignoreRed || !d.values.contains("red") {
+            i += d.values.map({addNumbersFrom($0, ignoreRed: ignoreRed)}).reduce(0, combine: +)
         }
-    } else if className.rangeOfString("Dictionary") != nil {
-        if !ignoreRed || !(x as! Dictionary<String, NSObject>).values.contains("red") {
-            for y in (x as! Dictionary<String, NSObject>) {
-                i += readNumbersFrom(y.1, ignoreRed: ignoreRed)
-            }
-        }
-    } else if className.rangeOfString("Number") != nil {
-        i = (x as! NSNumber).integerValue
+    } else if let n = x as? Int {
+        i = n
     }
     return i
 }
 
 func main() {
     let jsonDict = try! NSJSONSerialization.JSONObjectWithData(getData(), options: []) as! NSObject
-    print("Sum is \(readNumbersFrom(jsonDict))")
-    print("Sum ignoring red is \(readNumbersFrom(jsonDict, ignoreRed: true))")
+    print("Sum is \(addNumbersFrom(jsonDict))")
+    print("Sum ignoring red is \(addNumbersFrom(jsonDict, ignoreRed: true))")
 }
 
 main()
