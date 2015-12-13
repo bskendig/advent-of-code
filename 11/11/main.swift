@@ -26,26 +26,22 @@ func increment(inout s: String, skip: [Character] = [], position: Int = 0) -> St
 }
 
 func isGood(s: String) -> Bool {
-    //  Passwords must include one increasing straight of at least three letters,
-    //    like abc, bcd, cde, and so on, up to xyz. They cannot skip letters; abd doesn't count.
     //  Passwords may not contain the letters i, o, or l, as these letters can be mistaken for other characters
     //    and are therefore confusing.
+    //  Passwords must include one increasing straight of at least three letters,
+    //    like abc, bcd, cde, and so on, up to xyz. They cannot skip letters; abd doesn't count.
     //  Passwords must contain at least two different, non-overlapping pairs of letters, like aa, bb, or zz.
 
-    let pattern1 = "abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz"
-    let regex1 = try! NSRegularExpression(pattern: pattern1, options: [])
-    let matches1 = regex1.matchesInString(s, options: [], range: NSMakeRange(0, s.characters.count))
-    if matches1.isEmpty { return false }
-
-    let pattern2 = "[iol]"
-    let regex2 = try! NSRegularExpression(pattern: pattern2, options: [])
-    let matches2 = regex2.matchesInString(s, options: [], range: NSMakeRange(0, s.characters.count))
-    if !matches2.isEmpty { return false }
-
-    let pattern3 = "(.)\\1.*([^\\1])\\2"
-    let regex3 = try! NSRegularExpression(pattern: pattern3, options: [])
-    let matches3 = regex3.matchesInString(s, options: [], range: NSMakeRange(0, s.characters.count))
-    if matches3.isEmpty { return false }
+    let patterns: [String:Bool] = [
+        "[iol]": false,
+        "abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz": true,
+        "(.)\\1.*([^\\1])\\2": true
+    ]
+    for (p, val) in patterns {
+        let regex = try! NSRegularExpression(pattern: p, options: [])
+        let matches = regex.matchesInString(s, options: [], range: NSMakeRange(0, s.characters.count))
+        if matches.isEmpty == val { return false }
+    }
 
     return true
 }
