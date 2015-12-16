@@ -9,8 +9,8 @@
 import Foundation
 
 var ingredients: [String:[Int]] = [:]
-var maxScore = 0
-var with500Calories: [Int] = []
+var maxScore: (Int, [String:Int]) = (0, [:])
+var with500Calories: [(Int, [String:Int])] = []
 
 
 func getInput() -> String {
@@ -45,8 +45,8 @@ func tryIngredients(quantities: [String:Int], remainingQuantity: Int, remainingI
         var newQuantities = quantities
         newQuantities[remainingIngredients[0]] = remainingQuantity
         let (score, calories) = total(newQuantities)
-        if score > maxScore { maxScore = score }
-        if calories == 500 { with500Calories.append(score) }
+        if score > maxScore.0 { maxScore = (score, newQuantities) }
+        if calories == 500 { with500Calories.append((score, newQuantities)) }
     } else {
         for i in 0 ... remainingQuantity {
             var newQuantities = quantities
@@ -77,8 +77,9 @@ func main() {
 
     tryIngredients([:], remainingQuantity: 100, remainingIngredients: Array(ingredients.keys))
 
-    print(maxScore)
-    print(with500Calories.maxElement())
+    print("Best cookie: \(maxScore.1) with a score of \(maxScore.0).")
+    let part2Answer = with500Calories.maxElement({ $0.0 < $1.0 })
+    print("500-calorie cookie: \(part2Answer!.1) with a score of \(part2Answer!.0).")
 }
 
 main()
