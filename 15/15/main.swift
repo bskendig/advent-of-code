@@ -40,26 +40,26 @@ func total(ingredientQuantities: [String:Int]) -> (Int, Int) {
     return (ingredientPropertyTotals.map({ max($0, 0) }).reduce(1, combine: *), calories)
 }
 
-// tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
-/*
 func tryIngredients(quantities: [String:Int], remainingQuantity: Int, remainingIngredients: [String]) -> Int {
-    if remainingIngredientCount == 1 {
+    if remainingIngredients.count == 1 {
         var newQuantities = quantities
-        newQuantities.append(remainingQuantity)
-        let score = total(quantities)
-        print(newQuantities)
+        newQuantities[remainingIngredients[0]] = remainingQuantity
+        let (score, calories) = total(newQuantities)
+        if score > maxScore { maxScore = score }
+        if calories == 500 { with500Calories.append(score) }
     } else {
         for i in 0 ... remainingQuantity {
             var newQuantities = quantities
-            newQuantities.append(i)
+            var stillRemainingIngredients = remainingIngredients
+            let nextIngredient = stillRemainingIngredients.removeFirst()
+            newQuantities[nextIngredient] = i
             tryIngredients(
-                newQuantities, remainingQuantity: remainingQuantity - i, remainingIngredientCount: remainingIngredientCount - 1
+                newQuantities, remainingQuantity: remainingQuantity - i, remainingIngredients: stillRemainingIngredients
             )
         }
     }
     return 0
 }
-*/
 
 func main() {
     let ingredientLines = getInput().componentsSeparatedByString("\n")
@@ -75,23 +75,8 @@ func main() {
         }
     }
 
-//    let x = total(["Frosting": 25, "Candy": 25, "Butterscotch": 25, "Sugar": 25])
-//    let x = total(["Butterscotch": 1, "Cinnamon": 1])
+    tryIngredients([:], remainingQuantity: 100, remainingIngredients: Array(ingredients.keys))
 
-    //    tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
-    //    exit(0)
-    
-    for a in 0 ... 100 {
-        for b in 0 ... (100 - a) {
-            for c in 0 ... (100 - a - b) {
-                let d = 100 - a - b - c
-                let (totalScore, calories) = total(["Frosting": a, "Candy": b, "Butterscotch": c, "Sugar": d])
-                print("\(a), \(b), \(c), \(d) -> \(totalScore)")
-                if totalScore > maxScore { maxScore = totalScore }
-                if calories == 500 { with500Calories.append(totalScore) }
-            }
-        }
-    }
     print(maxScore)
     print(with500Calories.maxElement())
 }
