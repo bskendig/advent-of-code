@@ -12,7 +12,6 @@ var ingredients: [String:[Int]] = [:]
 var maxScore: (Int, [String:Int]) = (0, [:])
 var with500Calories: [(Int, [String:Int])] = []
 
-
 func getInput() -> String {
     let bundle = NSBundle.mainBundle()
     let path = bundle.pathForResource("input", ofType: "txt")
