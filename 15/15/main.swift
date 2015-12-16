@@ -27,20 +27,22 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
     return a
 }
 
-func total(ingredientQuantities: [Int]) -> (Int, Int) {
-    var ingredientPropertyTotals = [Int](count: ingredients[0]!.count, repeatedValue: 0)
-    for (ingredientName, ingredientProperties) in ingredients {
+func total(ingredientQuantities: [String:Int]) -> (Int, Int) {
+    // ingredientQuantities = ["Frosting": 1, "Candy": 2, ...]
+    var ingredientPropertyTotals = [Int](count: 5, repeatedValue: 0)  // because we have 5 different properties
+    // ingredientPropertyTotals = [0, 0, 0, 0, 0]
+    for (ingredientName, ingredientQuantity) in ingredientQuantities {
         for i in 0 ... ingredientPropertyTotals.count - 1 {
-            ingredientPropertyTotals[i] = max(ingredientProperties[i] * ingredientQuantities[i], 0)  // this is wrong
+            ingredientPropertyTotals[i] += ingredients[ingredientName]![i] * ingredientQuantity
         }
     }
     let calories = ingredientPropertyTotals.removeLast()
-    return (ingredientPropertyTotals.reduce(0, combine: *), calories)
+    return (ingredientPropertyTotals.map({ max($0, 0) }).reduce(1, combine: *), calories)
 }
 
 // tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
-
-func tryIngredients(quantities: [Int], remainingQuantity: Int, remainingIngredientCount: Int) -> Int {
+/*
+func tryIngredients(quantities: [String:Int], remainingQuantity: Int, remainingIngredients: [String]) -> Int {
     if remainingIngredientCount == 1 {
         var newQuantities = quantities
         newQuantities.append(remainingQuantity)
@@ -57,14 +59,11 @@ func tryIngredients(quantities: [Int], remainingQuantity: Int, remainingIngredie
     }
     return 0
 }
+*/
 
 func main() {
-
-//    tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
-//    exit(0)
-
     let ingredientLines = getInput().componentsSeparatedByString("\n")
-    // Frosting: capacity 4, durability -2, flavor 0, texture 0, calories 5
+    // (example) Frosting: capacity 4, durability -2, flavor 0, texture 0, calories 5
     let regex = try! NSRegularExpression(
         pattern: "^(.+): capacity (.+), durability (.+), flavor (.+), texture (.+), calories (.+)$", options: []
     )
@@ -76,11 +75,17 @@ func main() {
         }
     }
 
+//    let x = total(["Frosting": 25, "Candy": 25, "Butterscotch": 25, "Sugar": 25])
+//    let x = total(["Butterscotch": 1, "Cinnamon": 1])
+
+    //    tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
+    //    exit(0)
+    
     for a in 0 ... 100 {
         for b in 0 ... (100 - a) {
             for c in 0 ... (100 - a - b) {
                 let d = 100 - a - b - c
-                let (totalScore, calories) = total([a, b, c, d])
+                let (totalScore, calories) = total(["Frosting": a, "Candy": b, "Butterscotch": c, "Sugar": d])
                 print("\(a), \(b), \(c), \(d) -> \(totalScore)")
                 if totalScore > maxScore { maxScore = totalScore }
                 if calories == 500 { with500Calories.append(totalScore) }
