@@ -8,6 +8,11 @@
 
 import Foundation
 
+var ingredients: [String:[Int]] = [:]
+var maxScore = 0
+var with500Calories: [Int] = []
+
+
 func getInput() -> String {
     let bundle = NSBundle.mainBundle()
     let path = bundle.pathForResource("input", ofType: "txt")
@@ -22,33 +27,42 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
     return a
 }
 
-func total(frostingAmount: Int, candyAmount: Int, butterscotchAmount: Int, sugarAmount: Int,
-    ingredients: [String:(Int, Int, Int, Int, Int)]) -> (Int, Int) {
-        let totalCapacity = ingredients["Frosting"]!.0 * frostingAmount
-            + ingredients["Candy"]!.0 * candyAmount
-            + ingredients["Butterscotch"]!.0 * butterscotchAmount
-            + ingredients["Sugar"]!.0 * sugarAmount
-        let totalDurability = ingredients["Frosting"]!.1 * frostingAmount
-            + ingredients["Candy"]!.1 * candyAmount
-            + ingredients["Butterscotch"]!.1 * butterscotchAmount
-            + ingredients["Sugar"]!.1 * sugarAmount
-        let totalFlavor = ingredients["Frosting"]!.2 * frostingAmount
-            + ingredients["Candy"]!.2 * candyAmount
-            + ingredients["Butterscotch"]!.2 * butterscotchAmount
-            + ingredients["Sugar"]!.2 * sugarAmount
-        let totalTexture = ingredients["Frosting"]!.3 * frostingAmount
-            + ingredients["Candy"]!.3 * candyAmount
-            + ingredients["Butterscotch"]!.3 * butterscotchAmount
-            + ingredients["Sugar"]!.3 * sugarAmount
-        let totalCalories = ingredients["Frosting"]!.4 * frostingAmount
-            + ingredients["Candy"]!.4 * candyAmount
-            + ingredients["Butterscotch"]!.4 * butterscotchAmount
-            + ingredients["Sugar"]!.4 * sugarAmount
-        return (max(totalCapacity, 0) * max(totalDurability, 0) * max(totalFlavor, 0) * max(totalTexture, 0), totalCalories)
+func total(ingredientQuantities: [Int]) -> (Int, Int) {
+    var ingredientPropertyTotals = [Int](count: ingredients[0]!.count, repeatedValue: 0)
+    for (ingredientName, ingredientProperties) in ingredients {
+        for i in 0 ... ingredientPropertyTotals.count - 1 {
+            ingredientPropertyTotals[i] = max(ingredientProperties[i] * ingredientQuantities[i], 0)  // this is wrong
+        }
+    }
+    let calories = ingredientPropertyTotals.removeLast()
+    return (ingredientPropertyTotals.reduce(0, combine: *), calories)
+}
+
+// tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
+
+func tryIngredients(quantities: [Int], remainingQuantity: Int, remainingIngredientCount: Int) -> Int {
+    if remainingIngredientCount == 1 {
+        var newQuantities = quantities
+        newQuantities.append(remainingQuantity)
+        let score = total(quantities)
+        print(newQuantities)
+    } else {
+        for i in 0 ... remainingQuantity {
+            var newQuantities = quantities
+            newQuantities.append(i)
+            tryIngredients(
+                newQuantities, remainingQuantity: remainingQuantity - i, remainingIngredientCount: remainingIngredientCount - 1
+            )
+        }
+    }
+    return 0
 }
 
 func main() {
-    var ingredients: [String:(Int, Int, Int, Int, Int)] = [:]
+
+//    tryIngredients([], remainingQuantity: 100, remainingIngredientCount: 4)
+//    exit(0)
+
     let ingredientLines = getInput().componentsSeparatedByString("\n")
     // Frosting: capacity 4, durability -2, flavor 0, texture 0, calories 5
     let regex = try! NSRegularExpression(
@@ -58,24 +72,22 @@ func main() {
         let matches = regex.matchesInString(line, options: [], range: NSMakeRange(0, line.characters.count))
         if !matches.isEmpty {
             var a = getMatches(line, matches: matches)
-            ingredients[a[0]] = (Int(a[1])!, Int(a[2])!, Int(a[3])!, Int(a[4])!, Int(a[5])!)
+            ingredients[a[0]] = [Int(a[1])!, Int(a[2])!, Int(a[3])!, Int(a[4])!, Int(a[5])!]
         }
     }
 
-    var max = 0
-    var with500Calories: [Int] = []
     for a in 0 ... 100 {
         for b in 0 ... (100 - a) {
             for c in 0 ... (100 - a - b) {
                 let d = 100 - a - b - c
-                let (totalScore, calories) = total(a, candyAmount: b, butterscotchAmount: c, sugarAmount: d, ingredients: ingredients)
-                //print("\(a), \(b), \(c), \(d) -> \(totalScore)")
-                if totalScore > max { max = totalScore }
+                let (totalScore, calories) = total([a, b, c, d])
+                print("\(a), \(b), \(c), \(d) -> \(totalScore)")
+                if totalScore > maxScore { maxScore = totalScore }
                 if calories == 500 { with500Calories.append(totalScore) }
             }
         }
     }
-    print(max)
+    print(maxScore)
     print(with500Calories.maxElement())
 }
 
