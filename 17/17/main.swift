@@ -31,7 +31,7 @@ func fill(capacity: Int, containers: [Int]) -> [[Int]] {
             if container == capacity {
                 allWorkingCombinations += [[container]]
             } else if container < capacity {
-                let restOfContainers = containers[i ..< containers.count] as [Int]
+                let restOfContainers = Array(containers[i+1 ..< containers.count])
                 let rest: [[Int]] = fill(capacity - container, containers: restOfContainers)
                 if rest.count > 0 {
                     var newA: [[Int]] = []
