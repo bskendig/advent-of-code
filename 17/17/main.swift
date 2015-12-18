@@ -26,15 +26,13 @@ func fill(capacity: Int, containers: [Int]) -> [[Int]] {
         }
     } else {
         var allWorkingCombinations: [[Int]] = []
-        for i in 0 ..< containers.count {
+        for (i, container) in containers.enumerate() {
             // try the subset with this container removed
-            var newContainers = containers
-            let container: Int = newContainers.removeAtIndex(i)
-
             if container == capacity {
                 allWorkingCombinations += [[container]]
             } else if container < capacity {
-                let rest: [[Int]] = fill(capacity - container, containers: newContainers)
+                let restOfContainers = containers[i ..< containers.count] as [Int]
+                let rest: [[Int]] = fill(capacity - container, containers: restOfContainers)
                 if rest.count > 0 {
                     var newA: [[Int]] = []
                     for r in rest {
