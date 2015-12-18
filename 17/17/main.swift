@@ -27,20 +27,17 @@ func fill(capacity: Int, containers: [Int]) -> [[Int]] {
     } else {
         var allWorkingCombinations: [[Int]] = []
         for (i, container) in containers.enumerate() {
-            // try the subset with this container removed
             if container == capacity {
                 allWorkingCombinations += [[container]]
             } else if container < capacity {
+                // fill this container, then try the rest of the containers
                 let restOfContainers = Array(containers[i+1 ..< containers.count])
-                let rest: [[Int]] = fill(capacity - container, containers: restOfContainers)
-                if rest.count > 0 {
-                    var newA: [[Int]] = []
-                    for r in rest {
-                        var r2 = r
-                        r2.append(container)
-                        newA.append(r2)
-                    }
-                    allWorkingCombinations += newA
+                let newWorkingCombinations: [[Int]] = fill(capacity - container, containers: restOfContainers)
+                if newWorkingCombinations.count > 0 {
+                    allWorkingCombinations += newWorkingCombinations.map({ (var a: [Int]) -> [Int] in
+                        a.append(container)
+                        return a
+                    })
                 }
             }
         }
@@ -51,9 +48,12 @@ func fill(capacity: Int, containers: [Int]) -> [[Int]] {
 func main() {
     let containers = getInput().componentsSeparatedByString("\n").filter({ $0 != "" }).map({ Int($0)! })
 
-    let f = fill(150, containers: containers)
-    print(f)
-    print(f.count)
+    let filledContainers = fill(150, containers: containers)
+    print("There are \(filledContainers.count) different ways to fill the containers.")
+
+    let shortestLength = filledContainers.minElement({ $0.count < $1.count })!.count
+    let shortLists = filledContainers.filter({ $0.count == shortestLength })
+    print("There are \(shortLists.count) ways to fill \(shortestLength) containers.")
 }
 
 main()
