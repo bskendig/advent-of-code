@@ -14,31 +14,48 @@ func getInput() -> String {
     return try! NSString(contentsOfFile: path!, encoding: NSUTF8StringEncoding) as String
 }
 
-func fill(capacity: Int, containers: [Int]) -> [Any]? {
+func fill(capacity: Int, containers: [Int]) -> [[Int]] {
+    if capacity <= 0 {
+        return []
+    }
     if containers.count == 1 {
         if containers[0] == capacity {
-            return containers
+            return [containers]
         } else {
-            return nil
+            return []
         }
     } else {
-        var a: [Any] = []
+        var allWorkingCombinations: [[Int]] = []
         for i in 0 ..< containers.count {
+            // try the subset with this container removed
             var newContainers = containers
-            let container = newContainers.removeAtIndex(i)
-            let rest = fill(capacity - container, containers: newContainers)
-            if rest != nil {
-                a.append([container, rest] as [Any])
+            let container: Int = newContainers.removeAtIndex(i)
+
+            if container == capacity {
+                allWorkingCombinations += [[container]]
+            } else if container < capacity {
+                let rest: [[Int]] = fill(capacity - container, containers: newContainers)
+                if rest.count > 0 {
+                    var newA: [[Int]] = []
+                    for r in rest {
+                        var r2 = r
+                        r2.append(container)
+                        newA.append(r2)
+                    }
+                    allWorkingCombinations += newA
+                }
             }
         }
-        return a
+        return allWorkingCombinations
     }
 }
 
 func main() {
     let containers = getInput().componentsSeparatedByString("\n").filter({ $0 != "" }).map({ Int($0)! })
-    let f = fill(25, containers: containers)
+
+    let f = fill(150, containers: containers)
     print(f)
+    print(f.count)
 }
 
 main()
