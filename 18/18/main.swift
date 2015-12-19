@@ -10,7 +10,7 @@ import Foundation
 
 func getInput() -> String {
     let bundle = NSBundle.mainBundle()
-    let path = bundle.pathForResource("simple", ofType: "txt")
+    let path = bundle.pathForResource("input", ofType: "txt")
     return try! NSString(contentsOfFile: path!, encoding: NSUTF8StringEncoding) as String
 }
 
@@ -35,10 +35,6 @@ func forceLightsOn(inout lights: [[Bool]]) {
 }
 
 func nextState(inout lights: [[Bool]], stuckLights: Bool = false) -> [[Bool]] {
-    if stuckLights {
-        forceLightsOn(&lights)
-    }
-//    printLights(lights)
     var nextState: [[Bool]] = []
     let width = lights[0].count
     let height = lights.count
@@ -49,6 +45,9 @@ func nextState(inout lights: [[Bool]], stuckLights: Bool = false) -> [[Bool]] {
             a.append((lights[i][j] == true && (n == 2 || n == 3)) || (lights[i][j] == false && n == 3))
         }
         nextState.append(a)
+    }
+    if stuckLights {
+        forceLightsOn(&nextState)
     }
     return nextState
 }
@@ -81,18 +80,18 @@ func main() {
     }
 
     let startingPattern = lights
-    let steps = 5
+    let steps = 100
 
     for _ in 1 ... steps {
         lights = nextState(&lights)
     }
     print("\(countLights(lights)) lights are on after \(steps) steps.")
+
     lights = startingPattern
-    printLights(lights)
+    forceLightsOn(&lights)
     for _ in 1 ... steps {
         lights = nextState(&lights, stuckLights: true)
     }
-    forceLightsOn(&lights)
     print("\(countLights(lights)) lights are on after \(steps) steps with some stuck on.")
 
 }
