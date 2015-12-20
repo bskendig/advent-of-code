@@ -22,6 +22,30 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
     return a
 }
 
+func allMoleculesFrom(startingMolecule: String, replacements: [String:[String]], limit: Int = -1) -> [String] {
+    var replacementStrings: [String] = []
+    for (molecule, replacementArray) in replacements {
+        let newRegex = try! NSRegularExpression(pattern: "(" + molecule + ")", options: [])
+        let matches = newRegex.matchesInString(startingMolecule, options: [],
+            range: NSMakeRange(0, startingMolecule.characters.count))
+        if !matches.isEmpty {
+            for match in matches {
+                for i in 1 ..< match.numberOfRanges {
+                    for replacementString in replacementArray {
+                        let newString = newRegex.stringByReplacingMatchesInString(
+                            startingMolecule, options: [], range: match.rangeAtIndex(i), withTemplate: replacementString
+                        )
+                        if limit == -1 || newString.characters.count <= limit {
+                            replacementStrings.append(newString)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return replacementStrings
+}
+
 func main() {
     let lines = getInput().componentsSeparatedByString("\n")
     var replacements: [String:[String]] = [:]
@@ -40,32 +64,28 @@ func main() {
         }
     }
 
-    print(startingMolecule)
+    // part 1
+    let replacementStrings = allMoleculesFrom(startingMolecule, replacements: replacements)
+    print("\(Set(replacementStrings).count) distinct molecules after one change.")
 
-    var replacementStrings: [String] = []
-    for (molecule, replacementArray) in replacements {
-        let newRegex = try! NSRegularExpression(pattern: "(" + molecule + ")", options: [])
-        let matches = newRegex.matchesInString(startingMolecule, options: [],
-            range: NSMakeRange(0, startingMolecule.characters.count))
-        if !matches.isEmpty {
-            for match in matches {
-                for i in 1 ..< match.numberOfRanges {
-                    for replacementString in replacementArray {
-                        let newString = newRegex.stringByReplacingMatchesInString(
-                            startingMolecule, options: [], range: match.rangeAtIndex(i), withTemplate: replacementString
-                        )
-                        print("")
-                        print(molecule + " => " + replacementString)
-                        print(newString)
-                        replacementStrings.append(newString)
-                    }
+    // part 2, working backwards
+    var changes = 0
+    while startingMolecule.characters.count > 1 {
+        for (molecule, replacementArray) in replacements {
+            for replacement in replacementArray {
+                let newRegex = try! NSRegularExpression(pattern: "(" + replacement + ")", options: [])
+                let matches = newRegex.matchesInString(startingMolecule, options: [],
+                    range: NSMakeRange(0, startingMolecule.characters.count))
+                if !matches.isEmpty {
+                    changes += matches.count
+                    startingMolecule = newRegex.stringByReplacingMatchesInString(
+                        startingMolecule, options: [], range: NSMakeRange(0, startingMolecule.characters.count), withTemplate: molecule
+                    )
                 }
             }
         }
     }
-
-    print(Set(replacementStrings).count)
-
+    print("\(changes) changes to get to the desired molecule.")
 }
 
 main()
