@@ -68,7 +68,7 @@ func main() {
     let replacementStrings = allMoleculesFrom(startingMolecule, replacements: replacements)
     print("\(Set(replacementStrings).count) distinct molecules after one change.")
 
-    // part 2, working backwards
+    // part 2, working backwards and assuming there's only one path
     var changes = 0
     while startingMolecule.characters.count > 1 {
         for (molecule, replacementArray) in replacements {
