@@ -40,23 +40,34 @@ func main() {
         }
     }
 
-    var countReplacements = 0
+    print(startingMolecule)
+
+    var replacementStrings: [String] = []
     for (molecule, replacementArray) in replacements {
-        let regex = try! NSRegularExpression(pattern: molecule, options: [])
-        let matches = regex.matchesInString(startingMolecule, options: [],
+        let newRegex = try! NSRegularExpression(pattern: "(" + molecule + ")", options: [])
+        let matches = newRegex.matchesInString(startingMolecule, options: [],
             range: NSMakeRange(0, startingMolecule.characters.count))
         if !matches.isEmpty {
             for i in 1 ..< matches[0].numberOfRanges {
-                for replace in replacementArray {
-
+                for replacementString in replacementArray {
+                    let newString = newRegex.stringByReplacingMatchesInString(
+                        startingMolecule, options: [], range: matches[i].range, withTemplate: replacementString
+                    )
+                    print("")
+                    print(molecule + " => " + replacementString)
+                    print(newString)
+                    replacementStrings.append(newString)
                 }
             }
         }
 
 //        countReplacements += matches.count * replacementArray.count
+
+        // I'm only getting the first match
+
     }
 
-    print(countReplacements)
+    print(Set(replacementStrings).count)
 
 }
 
