@@ -13,12 +13,13 @@ func divisorsOf(n: Int, limit: Int = 0) -> [Int] {
     var i = 1
     while i <= Int(sqrt(Double(n))) {
         if n % i == 0 {
-            if limit == 0 || n/i <= limit { d.append(i) }
-            if limit == 0 || i <= limit { d.append(n/i) }
+            let j = n/i
+            if limit == 0 || j <= limit { d.append(i) }
+            if i != j && (limit == 0 || i <= limit) { d.append(j) }
         }
         i++
     }
-    return Array(Set(d))
+    return d
 }
 
 func main() {
