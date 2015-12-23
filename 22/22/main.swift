@@ -8,65 +8,80 @@
 
 import Foundation
 
-let bossStartingHP = 58
-let bossDamage = 9
-
 enum Spell {
     case MagicMissile, Drain, Shield, Poison, Recharge
 }
 
-func applyEffects(inout durationsRemaining: [Spell:Int], inout myArmor: Int, inout bossHP: Int, inout myMana: Int) {
-    for (spell, duration) in durationsRemaining {
+struct GameState {
+    var spellDurationsRemaining: [Spell:Int]
+    var myHP: Int
+    var myMana: Int
+    var bossHP: Int
+}
+
+let bossStartingHP = 58
+let bossDamage = 9
+let myStartingHP = 50
+let myStartingMana = 500
+
+func applyEffects(inout gameState: GameState, inout myArmor: Int) {
+    for (spell, duration) in gameState.spellDurationsRemaining {
         switch spell {
         case .Shield:
             myArmor += 7
         case .Poison:
-            bossHP -= 3
+            gameState.bossHP -= 3
         case .Recharge:
-            myMana += 101
+            gameState.myMana += 101
         default:
             break
         }
         if duration == 1 {
-            durationsRemaining.removeValueForKey(spell)
+            gameState.spellDurationsRemaining.removeValueForKey(spell)
         } else {
-            durationsRemaining[spell]!--
+            gameState.spellDurationsRemaining[spell]!--
         }
     }
 }
 
-func oneRound(casting: Spell, var durationsRemaining: [Spell:Int], var myMana: Int, var myHP: Int, var bossHP: Int)
-    -> (durationsRemaining: [Spell:Int], myMana: Int, myHP: Int, bossHP: Int)? {
-        // my turn
+func oneRound(casting: Spell, var gameState: GameState) -> GameState? {
+
+        // player turn
+//        print("-- Player turn --")
+//        print("Player has \(myHP) hit points, \(myMana) mana")
         var myArmor = 0
-        applyEffects(&durationsRemaining, myArmor: &myArmor, bossHP: &bossHP, myMana: &myMana)
+        applyEffects(&gameState, myArmor: &myArmor)
         switch casting {
         case .MagicMissile:
-            myMana -= 53
-            bossHP -= 4
+            gameState.myMana -= 53
+            gameState.bossHP -= 4
         case .Drain:
-            myMana -= 73
-            bossHP -= 2
-            myHP += 2
+            gameState.myMana -= 73
+            gameState.bossHP -= 2
+            gameState.myHP += 2
         case .Shield:
-            myMana -= 113
-            durationsRemaining[.Shield] = 6
+            gameState.myMana -= 113
+            gameState.spellDurationsRemaining[.Shield] = 6
         case .Poison:
-            myMana -= 173
-            durationsRemaining[.Poison] = 6
+            gameState.myMana -= 173
+            gameState.spellDurationsRemaining[.Poison] = 6
         case .Recharge:
-            myMana -= 229
-            durationsRemaining[.Recharge] = 5
+            gameState.myMana -= 229
+            gameState.spellDurationsRemaining[.Recharge] = 5
         }
 
         // boss turn
-        applyEffects(&durationsRemaining, myArmor: &myArmor, bossHP: &bossHP, myMana: &myMana)
-        myHP -= (9 - myArmor)
+        applyEffects(&gameState, myArmor: &myArmor)
+        gameState.myHP -= (9 - myArmor)
 
-        return ([:], 0, 0, 0)
+        return gameState
 }
 
 func main() {
+
+    // we have a starting point: my hp and mana, boss hp, spell durations
+    // for each possible spell we can cast from here:
+    //   get a list of all possible outcomes
 
 }
 
