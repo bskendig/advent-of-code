@@ -22,38 +22,38 @@ func getMatches(s: String, matches: [NSTextCheckingResult]) -> [String] {
     return a
 }
 
-func main() {
-    let instructions = getInput().componentsSeparatedByString("\n").filter({ $0 != "" })
-    var reg: [String:UInt] = ["a": 1, "b": 0]
+func runMachine(instructions: [String], var registers: [String:UInt]) -> [String:UInt] {
     var pc = 0
-    let regex = try! NSRegularExpression(pattern: "^([^ ]+) (.+)$", options: [])
+    let regex3Args = try! NSRegularExpression(pattern: "^([^ ]+) (.+), (.+)$", options: [])
+    let regex2Args = try! NSRegularExpression(pattern: "^([^ ]+) (.+)$", options: [])
     repeat {
         let instruction = instructions[pc]
-        print(instruction)
-        let a = getMatches(instruction, matches: regex.matchesInString(instruction, options: [], range: NSMakeRange(0, instruction.characters.count)))
+        var matches = regex3Args.matchesInString(instruction, options: [], range: NSMakeRange(0, instruction.characters.count))
+        if matches.isEmpty {
+            matches = regex2Args.matchesInString(instruction, options: [], range: NSMakeRange(0, instruction.characters.count))
+        }
+        let a = getMatches(instruction, matches: matches)
         switch a[0] {
         case "hlf":
-            reg[a[1]] = reg[a[1]]! / 2
+            registers[a[1]] = registers[a[1]]! / 2
             pc++
         case "tpl":
-            reg[a[1]] = reg[a[1]]! * 3
+            registers[a[1]] = registers[a[1]]! * 3
             pc++
         case "inc":
-            reg[a[1]]!++
+            registers[a[1]]!++
             pc++
         case "jmp":
             pc += Int(a[1])!
         case "jie":
-            let args = a[1].componentsSeparatedByString(", ")
-            if reg[args[0]]! % 2 == 0 {
-                pc += Int(args[1])!
+            if registers[a[1]]! % 2 == 0 {
+                pc += Int(a[2])!
             } else {
                 pc++
             }
         case "jio":
-            let args = a[1].componentsSeparatedByString(", ")
-            if reg[args[0]]! == 1 {
-                pc += Int(args[1])!
+            if registers[a[1]]! == 1 {
+                pc += Int(a[2])!
             } else {
                 pc++
             }
@@ -61,8 +61,19 @@ func main() {
             break
         }
     } while pc > 0 && pc < instructions.count
+    return registers
+}
 
-    print(reg["b"])
+func main() {
+    let instructions = getInput().componentsSeparatedByString("\n").filter({ $0 != "" })
+
+    var reg: [String:UInt] = ["a": 0, "b": 0]
+    reg = runMachine(instructions, registers: reg)
+    print("With a starting as 0, b comes out as \(reg["b"]!).")
+
+    reg = ["a": 1, "b": 0]
+    reg = runMachine(instructions, registers: reg)
+    print("With a starting as 1, b comes out as \(reg["b"]!).")
 }
 
 main()
