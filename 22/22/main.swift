@@ -25,19 +25,15 @@ struct GameState {
     var myHP: Int
     var myMana: Int
     var bossHP: Int
+    var bossDamage: Int
 }
-
-let bossStartingHP = 58
-let bossDamage = 9
-let myStartingHP = 50
-let myStartingMana = 500
 
 func applyEffects(inout gameState: GameState, inout myArmor: Int) {
     for (spell, duration) in gameState.spellDurationsRemaining {
         switch spell {
         case .Shield:
-            myArmor += 7
-            print("Shield increases armor by 7.")
+            myArmor = 7
+            print("Shield sets armor to 7.")
         case .Poison:
             gameState.bossHP -= 3
             print("Poison deals 3 damage.")
@@ -64,6 +60,7 @@ func oneRound(casting: Spell, var gameState: GameState) -> GameState? {
     var myArmor = 0
     applyEffects(&gameState, myArmor: &myArmor)
     if gameState.bossHP <= 0 {
+        print("Boss is dead.")
         return gameState
     }
     gameState.myMana -= spellCost[casting]!
@@ -85,27 +82,58 @@ func oneRound(casting: Spell, var gameState: GameState) -> GameState? {
         gameState.spellDurationsRemaining[.Recharge] = 5
         print("Player casts Recharge.")
     }
+    if gameState.bossHP <= 0 {
+        print("Boss is dead.")
+        return gameState
+    }
     print("")
 
     print("-- Boss turn --")
+    print("Player has \(gameState.myHP) hit points, \(gameState.myMana) mana")
+    print("Boss has \(gameState.bossHP) hit points")
     applyEffects(&gameState, myArmor: &myArmor)
-    let damage = 9 - myArmor
+    if gameState.bossHP <= 0 {
+        print("Boss is dead.")
+        return gameState
+    }
+    let damage = gameState.bossDamage - myArmor
     gameState.myHP -= damage
     print("Boss attacks for \(damage) damage!")
+    if gameState.myHP <= 0 {
+        print("Player is dead.")
+        return gameState
+    }
     print("")
 
     return gameState
 }
 
 func main() {
+    let bossStartingHP = 58
+    let bossDamage = 9
+    let myStartingHP = 50
+    let myStartingMana = 500
+
+//    let bossStartingHP = 14
+//    let bossDamage = 8
+//    let myStartingHP = 10
+//    let myStartingMana = 250
 
     // we have a starting point: my hp and mana, boss hp, spell durations
     // for each possible spell we can cast from here:
     //   get a list of all possible outcomes
 
-    var gameState = GameState(spellDurationsRemaining: [:], myHP: myStartingHP, myMana: myStartingMana, bossHP: bossStartingHP)
-    gameState = oneRound(Spell.MagicMissile, gameState: gameState)!
-    print(gameState)
+    var gameState = GameState(spellDurationsRemaining: [:], myHP: myStartingHP, myMana: myStartingMana, bossHP: bossStartingHP, bossDamage: bossDamage)
+
+    for spell in [Spell.Recharge, Spell.Shield, Spell.Drain, Spell.Poison, Spell.MagicMissile] {
+        gameState = oneRound(spell, gameState: gameState)!
+        print(gameState)
+    }
+
+
+
+//    gameState = oneRound(Spell.MagicMissile, gameState: gameState)!
+//    print(gameState)
 
 }
 
