@@ -8,8 +8,13 @@
 
 import Foundation
 
-enum Spell {
+enum Spell: Int {
     case MagicMissile, Drain, Shield, Poison, Recharge
+//    static let count: Int = {
+//        var max: Int = 0
+//        while let _ = Spell(rawValue: max) { max += 1 }
+//        return max
+//    }()
 }
 
 let spellCost: [Spell:Int] = [
@@ -51,7 +56,7 @@ func applyEffects(inout gameState: GameState, inout myArmor: Int) {
     }
 }
 
-func oneRound(casting: Spell, var gameState: GameState) -> GameState? {
+func oneRound(casting: Spell, var gameState: GameState) -> GameState {
 
     // player turn
     print("-- Player turn --")
@@ -108,16 +113,42 @@ func oneRound(casting: Spell, var gameState: GameState) -> GameState? {
     return gameState
 }
 
-func main() {
-    let bossStartingHP = 58
-    let bossDamage = 9
-    let myStartingHP = 50
-    let myStartingMana = 500
+func lowestManaFromThisState(gameState: GameState) -> Int {
+//    if gameState.bossHP <= 0 {
+//
+//    } else if gameState.myHP <= 0 {
+//
+//    }
+    var manaUsage: [Spell:Int] = [:]
+    for spell: Spell in [.MagicMissile, .Drain, .Shield, .Poison, .Recharge] {
+        if spellCost[spell] > gameState.myMana {
+            continue
+        }
+        let newGameState = oneRound(spell, gameState: gameState)
+        if newGameState.bossHP <= 0 {
+            manaUsage[spell] = spellCost[spell]
+        } else if newGameState.myHP > 0 {
+            manaUsage[spell] = spellCost[spell]! + lowestManaFromThisState(newGameState)
+        }
+    }
+    if manaUsage.count == 0 {
+        return 99999
+    }
+    let bestSpellToUse = manaUsage.minElement({ $0.1 < $1.1 })
+    // bestSpellToUse.0 is the spell
+    return bestSpellToUse!.1
+}
 
-//    let bossStartingHP = 14
-//    let bossDamage = 8
-//    let myStartingHP = 10
-//    let myStartingMana = 250
+func main() {
+//    let bossStartingHP = 58
+//    let bossDamage = 9
+//    let myStartingHP = 50
+//    let myStartingMana = 500
+
+    let bossStartingHP = 14
+    let bossDamage = 8
+    let myStartingHP = 10
+    let myStartingMana = 250
 
     // we have a starting point: my hp and mana, boss hp, spell durations
     // for each possible spell we can cast from here:
@@ -125,15 +156,18 @@ func main() {
 
     var gameState = GameState(spellDurationsRemaining: [:], myHP: myStartingHP, myMana: myStartingMana, bossHP: bossStartingHP, bossDamage: bossDamage)
 
-    for spell in [Spell.Recharge, Spell.Shield, Spell.Drain, Spell.Poison, Spell.MagicMissile] {
-        gameState = oneRound(spell, gameState: gameState)!
-        print(gameState)
+    print(lowestManaFromThisState(gameState))
+
+
+//    for spell in [Spell.Recharge, Spell.Shield, Spell.Drain, Spell.Poison, Spell.MagicMissile] {
+//        gameState = oneRound(spell, gameState: gameState)
+//        print(gameState)
+//    }
+
+    for _ in 1 ... 500 {
+
     }
 
-
-
-//    gameState = oneRound(Spell.MagicMissile, gameState: gameState)!
-//    print(gameState)
 
 }
 
