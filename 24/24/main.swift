@@ -19,7 +19,7 @@ func getInput() -> String {
     return try! NSString(contentsOfFile: path!, encoding: NSUTF8StringEncoding) as String
 }
 
-func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
+func weightsToTotal(total: Int, weights: [Int], onlyNeedOne: Bool = false) -> [WeightCollection] {
     var workingCombinations: [WeightCollection] = []
     for (i, weight) in weights.enumerate() {
         let weightsBeforeThisOne = Array(weights[0 ..< i])
@@ -29,8 +29,11 @@ func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
         } else if weight == total {
             let weightCollection = WeightCollection(used: [weight], leftover: weightsBeforeThisOne + weightsAfterThisOne)
             workingCombinations.append(weightCollection)
+            if onlyNeedOne {
+                break
+            }
         } else {
-            let weightCollections = weightsToTotal(total - weight, weights: weightsAfterThisOne)
+            let weightCollections = weightsToTotal(total - weight, weights: weightsAfterThisOne, onlyNeedOne: onlyNeedOne)
             if !weightCollections.isEmpty {
                 // just add weight to each of the weightCollections.used that we got back
                 let newWeightCollections = weightCollections.map({ (var weightCollection: WeightCollection) -> WeightCollection in
@@ -39,6 +42,9 @@ func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
                     return weightCollection
                 })
                 workingCombinations += newWeightCollections
+                if onlyNeedOne && !workingCombinations.isEmpty {
+                    break
+                }
             }
 
         }
@@ -50,14 +56,28 @@ func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
 func main() {
     let weights = getInput().componentsSeparatedByString("\n").filter({ $0 != "" }).map({ Int($0)! })
     let sum = weights.reduce(0, combine: +)
-    //    print(weights)
-    //    print(sum, sum/3)
-    //    1524 508
 
-    print(weightsToTotal(20, weights: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11]))
+    let oneThird = sum/3
+    var solutions = weightsToTotal(oneThird, weights: weights)
+    var solutionsThatCanBeDividedEvenly = solutions.filter({
+        !weightsToTotal(oneThird, weights: $0.leftover, onlyNeedOne: true).isEmpty
+    })
+    var shortestListLength = solutionsThatCanBeDividedEvenly.minElement({ $0.used.count < $1.used.count })!.used.count
+    var shortestSolutions = solutionsThatCanBeDividedEvenly.filter({ $0.used.count == shortestListLength })
+    var smallestQuantumEntanglement = shortestSolutions.map({ $0.used.reduce(1, combine: *) }).minElement()!
+    print("Smallest quantum entanglement for packages divided into three groups: \(smallestQuantumEntanglement)")
 
-    //    print(weightsToTotal(sum/3, weights: weights))
-    
+    let oneFourth = sum/4
+    solutions = weightsToTotal(oneFourth, weights: weights)
+    solutionsThatCanBeDividedEvenly = solutions.filter({
+        // @todo: this should also check the third fourth
+        !weightsToTotal(oneFourth, weights: $0.leftover, onlyNeedOne: true).isEmpty
+    })
+    shortestListLength = solutionsThatCanBeDividedEvenly.minElement({ $0.used.count < $1.used.count })!.used.count
+    shortestSolutions = solutionsThatCanBeDividedEvenly.filter({ $0.used.count == shortestListLength })
+    smallestQuantumEntanglement = shortestSolutions.map({ $0.used.reduce(1, combine: *) }).minElement()!
+    print("Smallest quantum entanglement for packages divided into four groups: \(smallestQuantumEntanglement)")
+
 }
 
 main()
