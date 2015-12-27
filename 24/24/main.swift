@@ -21,22 +21,24 @@ func getInput() -> String {
 
 func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
     var workingCombinations: [WeightCollection] = []
-    for i in 0 ..< weights.count {
-        var weightsWithOneRemoved = weights
-        let weight: Int = weightsWithOneRemoved.removeAtIndex(i)
+    for (i, weight) in weights.enumerate() {
+        let weightsBeforeThisOne = Array(weights[0 ..< i])
+        let weightsAfterThisOne = Array(weights[i+1 ..< weights.count])
         if weight > total {
             continue
         } else if weight == total {
-            let weightCollection = WeightCollection(used: [weight], leftover: weightsWithOneRemoved)
+            let weightCollection = WeightCollection(used: [weight], leftover: weightsBeforeThisOne + weightsAfterThisOne)
             workingCombinations.append(weightCollection)
         } else {
-            let weightCollections = weightsToTotal(total - weight, weights: weightsWithOneRemoved)
+            let weightCollections = weightsToTotal(total - weight, weights: weightsAfterThisOne)
             if !weightCollections.isEmpty {
-                let newWeightCollections = weightCollections.map({ (weightCollection: WeightCollection) -> WeightCollection in
-                    var newWeightCollection = weightCollection
-                    var usedGroup = newWeightCollection.used
-                    return usedGroup.app append(weight)
+                // just add weight to each of the weightCollections.used that we got back
+                let newWeightCollections = weightCollections.map({ (var weightCollection: WeightCollection) -> WeightCollection in
+                    weightCollection.used.append(weight)
+                    weightCollection.leftover += weightsBeforeThisOne
+                    return weightCollection
                 })
+                workingCombinations += newWeightCollections
             }
 
         }
@@ -47,10 +49,15 @@ func weightsToTotal(total: Int, weights: [Int]) -> [WeightCollection] {
 
 func main() {
     let weights = getInput().componentsSeparatedByString("\n").filter({ $0 != "" }).map({ Int($0)! })
-    print(weights)
     let sum = weights.reduce(0, combine: +)
-    print(sum, sum/3)
-//    1524 508
+    //    print(weights)
+    //    print(sum, sum/3)
+    //    1524 508
+
+    print(weightsToTotal(20, weights: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11]))
+
+    //    print(weightsToTotal(sum/3, weights: weights))
+    
 }
 
 main()
