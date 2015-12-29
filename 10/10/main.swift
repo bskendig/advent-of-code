@@ -42,7 +42,7 @@ func main() {
     let start = NSDate().timeIntervalSince1970
     for i in 1...100 {
         (a, len) = iterate(&a, oldLength: len)
-        print("\(i): \(NSDate().timeIntervalSince1970 - start) seconds")
+        print("\(i): \(NSDate().timeIntervalSince1970 - start) seconds, length = \(len)")
     }
 }
 
